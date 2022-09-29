@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+// import { useMountedState } from 'react-use';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import { Global } from '@emotion/react';
 import { GlobalStyles } from './GlobalStyles.styled';
@@ -18,11 +19,33 @@ Notify.init({
   cssAnimationDuration: 1000,
 });
 const App = () => {
-  const isMounted = useRef(false);
   const [value, setValue] = useState('');
   const [images, setImages] = useState([]);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!value) {
+      return;
+    }
+    const findImages = async () => {
+      try {
+        setIsLoading(true);
+        const photos = await fetchData(value, page);
+        photos.hits.length === 0
+          ? Notify.failure(
+              'Sorry! There is no photo with this name. Try something else!'
+            )
+          : setImages(images => [...images, ...photos.hits]);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    findImages();
+  }, [value, page]);
 
   const addValue = ({ inputValue }) => {
     if (inputValue !== value) {
@@ -37,29 +60,6 @@ const App = () => {
   const loadMore = () => {
     setPage(() => page + 1);
   };
-
-  const findImages = async () => {
-    try {
-      setIsLoading(true);
-      const photos = await fetchData(value, page);
-      photos.hits.length === 0
-        ? Notify.failure(
-            'Sorry! There is no photo with this name. Try something else!'
-          )
-        : setImages(() => [...images, ...photos.hits]);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isMounted.current) {
-      findImages();
-    }
-    isMounted.current = true;
-  }, [page, value]);
 
   return (
     <AppBox>
