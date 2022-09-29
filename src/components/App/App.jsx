@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import { Global } from '@emotion/react';
 import { GlobalStyles } from './GlobalStyles.styled';
@@ -17,79 +17,66 @@ Notify.init({
   cssAnimationStyle: 'zoom',
   cssAnimationDuration: 1000,
 });
+const App = () => {
+  const isMounted = useRef(false);
+  const [value, setValue] = useState('');
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
 
-class App extends Component {
-  state = {
-    value: '',
-    images: [],
-    page: 1,
-    isLoading: false,
-  };
-
-  componentDidUpdate(_, prevState) {
-    if (
-      prevState.page !== this.state.page ||
-      prevState.value !== this.state.value
-    ) {
-      this.findImages();
-    }
-  }
-
-  addValue = ({ inputValue }) => {
-    if (inputValue !== this.state.value) {
-      this.setState({
-        value: inputValue,
-        images: [],
-        page: 1,
-      });
+  const addValue = ({ inputValue }) => {
+    if (inputValue !== value) {
+      setValue(inputValue);
+      setImages([]);
+      setPage(1);
     } else {
-      this.setState({
-        value: inputValue,
-      });
+      setValue(inputValue);
     }
   };
 
-  loadMore = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const loadMore = () => {
+    setPage(() => page + 1);
   };
 
-  findImages = async () => {
+  const findImages = async () => {
     try {
-      this.setState({ isLoading: true });
-      const photos = await fetchData(this.state.value, this.state.page);
+      setIsLoading(true);
+      const photos = await fetchData(value, page);
       photos.hits.length === 0
         ? Notify.failure(
             'Sorry! There is no photo with this name. Try something else!'
           )
-        : this.setState(prevState => ({
-            images: [...prevState.images, ...photos.hits],
-          }));
+        : setImages(() => [...images, ...photos.hits]);
     } catch (error) {
       console.log(error);
     } finally {
-      this.setState({ isLoading: false });
+      setIsLoading(false);
     }
   };
 
-  render() {
-    const { images, isLoading } = this.state;
-    return (
-      <AppBox>
-        <Global styles={GlobalStyles} />
-        <Searchbar onSubmit={this.addValue} />
-        {isLoading && images.length === 0 ? (
-          <Loader />
-        ) : (
-          <ImageGallery items={images} />
-        )}
-        {images.length % 2 === 0 && images.length !== 0 ? (
-          <Button onClick={this.loadMore} />
-        ) : (
-          ''
-        )}
-      </AppBox>
-    );
-  }
-}
+  useEffect(() => {
+    if (isMounted.current) {
+      findImages();
+    }
+    isMounted.current = true;
+  }, [page, value]);
+
+  return (
+    <AppBox>
+      <Global styles={GlobalStyles} />
+      <Searchbar onSubmit={addValue} />
+      {isLoading && images.length === 0 ? (
+        <Loader />
+      ) : (
+        <ImageGallery items={images} />
+      )}
+      {images.length % 2 === 0 && images.length !== 0 ? (
+        <Button onClick={loadMore} />
+      ) : (
+        ''
+      )}
+    </AppBox>
+  );
+};
 
 export default App;
