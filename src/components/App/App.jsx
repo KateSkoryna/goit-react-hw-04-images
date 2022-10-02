@@ -57,10 +57,6 @@ const App = () => {
     }
   };
 
-  const loadMore = () => {
-    setPage(() => page + 1);
-  };
-
   return (
     <AppBox>
       <Global styles={GlobalStyles} />
@@ -71,7 +67,7 @@ const App = () => {
         <ImageGallery items={images} />
       )}
       {images.length % 12 === 0 && images.length !== 0 ? (
-        <Button onClick={loadMore} />
+        <Button onClick={() => setPage(() => page + 1)} />
       ) : (
         ''
       )}
