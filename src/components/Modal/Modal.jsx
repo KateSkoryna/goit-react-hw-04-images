@@ -1,23 +1,25 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Overlay, ModalWondow, ModalImage } from './Modal.styled';
 
 const Modal = ({ image, tags, onClose }) => {
-  const handleClickByEscape = e => {
-    if (e.code === 'Escape') {
-      onClose();
+  useEffect(() => {
+    const handleClickByEscape = e => {
+      if (e.code === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleClickByEscape);
+    return () => {
       window.removeEventListener('keydown', handleClickByEscape);
-    }
-  };
+    };
+  }, [onClose]);
 
   const handleClickOnBackdrop = e => {
     if (e.currentTarget === e.target) {
       onClose();
-      window.removeEventListener('keydown', handleClickByEscape);
     }
   };
-
-  window.addEventListener('keydown', handleClickByEscape);
 
   return (
     <Overlay onClick={handleClickOnBackdrop}>

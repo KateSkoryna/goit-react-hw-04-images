@@ -70,7 +70,7 @@ const App = () => {
       ) : (
         <ImageGallery items={images} />
       )}
-      {images.length % 2 === 0 && images.length !== 0 ? (
+      {images.length % 12 === 0 && images.length !== 0 ? (
         <Button onClick={loadMore} />
       ) : (
         ''
